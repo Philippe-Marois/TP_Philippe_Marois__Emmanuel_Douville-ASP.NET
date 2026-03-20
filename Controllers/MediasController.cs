@@ -65,27 +65,26 @@ public class MediasController : Controller
     // This action produce a partial view of Medias
     // It is meant to be called by an AJAX request (from client script)
     public ActionResult GetMediaDetails(bool forceRefresh = false)
+{
+    try
     {
-        try
-        {
-            InitSessionVariables();
+        InitSessionVariables();
 
-            int mediaId = (int)Session["CurrentMediaId"];
-            Media Media = DB.Medias.Get(mediaId);
-            if (Media != null)
-            {
-                if (DB.Users.HasChanged || DB.Medias.HasChanged || forceRefresh)
-                {
-                    return PartialView(Media);
-                }
-            }
-            return null;
-        }
-        catch (System.Exception ex)
+        int mediaId = (int)Session["CurrentMediaId"];
+        Media Media = DB.Medias.Get(mediaId);
+
+        if (DB.Users.HasChanged || DB.Medias.HasChanged || forceRefresh)
         {
-            return Content("Erreur interne" + ex.Message, "text/html");
+            return PartialView(Media);
         }
+
+        return null;
     }
+    catch (System.Exception ex)
+    {
+        return Content("Erreur interne" + ex.Message, "text/html");
+    }
+}
     public ActionResult GetMedias(bool forceRefresh = false)
     {
         try
