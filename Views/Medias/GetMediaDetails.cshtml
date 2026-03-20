@@ -1,0 +1,61 @@
+﻿@model Models.Media
+
+@if (Model != null)
+{
+    var users = new DAL.Repository<Models.User>().ToList();
+    var creator = users.FirstOrDefault(u => u.Id == Model.OwnerId);
+
+    int currentUserId = Models.User.ConnectedUser != null ? Models.User.ConnectedUser.Id : 0;
+
+    <dl>
+
+        @if (Model.OwnerId == currentUserId && Model.Shared)
+        {
+            <h4 style="color:grey;"> [Partagé]</h4>
+        }
+        <dd>
+            @Model.Title
+        </dd>
+
+        <dd>
+            @Helper.YoutubePlayer(Model.YoutubeId)
+        </dd>
+
+        <dd class="description">
+            @Model.Description
+        </dd>
+
+        <dt>
+            Catégorie
+        </dt>
+
+        <dd>
+            @Model.Category
+        </dd>
+
+        <dt>
+            Date de publication
+        </dt>
+
+        <dd>
+            @Helper.When(Model.PublishDate)
+        </dd>
+
+        @if (creator != null)
+        {
+            <dt>
+                Ajouté par
+            </dt>
+
+            <dd style="display:flex;align-items:center;gap:10px;">
+
+                <img src="@creator.Avatar"
+                     style="width:50px;height:50px;border-radius:50%;" />
+                <div>
+                    @creator.Name
+                </div>
+
+            </dd>
+        }
+    </dl>
+}
