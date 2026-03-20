@@ -1,4 +1,4 @@
-﻿using DAL;
+using DAL;
 using Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -90,51 +90,53 @@ public class MediasController : Controller
     {
         try
         {
-            IEnumerable<Media> result = null;
-            // Must evaluate HasChanged before forceRefresh, this will fix an usefull refresh
             if (DB.Medias.HasChanged || forceRefresh)
             {
-                // forceRefresh is true when a related view is produce
-                // DB.Medias.HasChanged is true when a change has been applied on any Media
                 InitSessionVariables();
 
                 bool search = (bool)Session["Search"];
                 string searchString = (string)Session["SearchString"];
                 var currentUser = Models.User.ConnectedUser;
 
-                var medias = DB.Medias.ToList();
+                var result = DB.Medias.ToList();
 
                 if (!currentUser.IsAdmin)
                 {
-                    medias = medias
+                    result = result
                         .Where(m => m.Shared || m.OwnerId == currentUser.Id)
                         .ToList();
                 }
+
                 if (search)
                 {
-                    result = DB.Medias.ToList().Where(c => c.Title.ToLower().Contains(searchString)).OrderBy(c => c.Title);
+                    result = result
+                        .Where(c => c.Title.ToLower().Contains(searchString))
+                        .ToList();
+
                     string SelectedCategory = (string)Session["SelectedCategory"];
                     if (SelectedCategory != "")
-                        result = result.Where(c => c.Category == SelectedCategory);
+                        result = result.Where(c => c.Category == SelectedCategory).ToList();
+                }
+
+                bool sortAscending = (bool)Session["SortAscending"];
+                bool sortByTitle = (bool)Session["SortByTitle"];
+
+                if (sortAscending)
+                {
+                    result = sortByTitle ?
+                        result.OrderBy(c => c.Title).ToList() :
+                        result.OrderBy(c => c.PublishDate).ToList();
                 }
                 else
-                    result = DB.Medias.ToList();
-                if ((bool)Session["SortAscending"])
                 {
-                    if ((bool)Session["SortByTitle"])
-                        result = result.OrderBy(c => c.Title);
-                    else
-                        result = result.OrderBy(c => c.PublishDate);
+                    result = sortByTitle ?
+                        result.OrderByDescending(c => c.Title).ToList() :
+                        result.OrderByDescending(c => c.PublishDate).ToList();
                 }
-                else
-                {
-                    if ((bool)Session["SortByTitle"])
-                        result = result.OrderByDescending(c => c.Title);
-                    else
-                        result = result.OrderByDescending(c => c.PublishDate);
-                }
+
                 return PartialView(result);
             }
+
             return null;
         }
         catch (System.Exception ex)
